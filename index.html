@@ -716,6 +716,15 @@
             }
         }
 
+        @keyframes spin {
+            from {
+                transform: rotate(0deg);
+            }
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
         /* Responsive */
         @media (max-width: 640px) {
             .header-title {
@@ -764,12 +773,15 @@
                     <li>• <strong>WAŻNE: Musisz przyznać uprawnienia do kamery!</strong></li>
                     <li>• Skieruj kamerę na kod kreskowy na butelce wina</li>
                     <li>• Lub wprowadź kod ręcznie w polu tekstowym</li>
-                    <li>• Baza zawiera ~15 prawdziwych kodów włoskich win</li>
-                    <li>• <strong>Nieznany kod?</strong> Aplikacja pozwoli go skopiować i dodać!</li>
+                    <li>• <strong>🌐 Aplikacja łączy się z bazą online!</strong></li>
+                    <li>• Automatycznie wyszukuje dane o winach w Open Food Facts</li>
                 </ul>
                 <div style="margin-top: 12px; padding: 12px; background: rgba(34, 197, 94, 0.2); border: 1px solid rgba(34, 197, 94, 0.4); border-radius: 6px;">
-                    <strong>💡 Dodawanie własnych win:</strong><br>
-                    Gdy wykryjesz nieznany kod, aplikacja pokaże instrukcję jak go dodać do bazy!
+                    <strong>💡 Jak to działa:</strong><br>
+                    1. Wykrywamy kod kreskowy<br>
+                    2. Sprawdzamy bazę Open Food Facts<br>
+                    3. Wyświetlamy informacje o winie<br>
+                    4. Jeśli nie znaleziono - możesz dodać ręcznie
                 </div>
                 <div style="margin-top: 12px; padding: 12px; background: rgba(220, 38, 38, 0.2); border: 1px solid rgba(220, 38, 38, 0.4); border-radius: 6px;">
                     <strong>⚠️ Problemy z kamerą?</strong><br>
@@ -900,9 +912,12 @@
     </div>
 
     <script>
-        // Wine database - real Italian wine EAN codes
-        // NOTE: These are REAL barcodes. Add your own wines below!
+        // Wine database - fallback for wines not found in API
         const wineDatabase = {
+            // This is now a FALLBACK database
+            // The app will first try to fetch from Open Food Facts API
+            // If not found, it will use this local database
+            
             // Chianti & Toskania
             '8000450005071': {
                 name: 'Chianti Classico DOCG',
@@ -935,115 +950,157 @@
                 color: '#F0E68C'
             },
             
-            // Amarone
-            '8000011000028': {
-                name: 'Amarone della Valpolicella',
-                region: 'Veneto',
-                type: 'Wytrawne',
-                grapes: 'Corvina, Rondinella',
-                color: '#4B0082'
-            },
-            
-            // Barolo & Barbaresco
-            '8000011030049': {
-                name: 'Barolo DOCG',
-                region: 'Piemont',
-                type: 'Wytrawne',
-                grapes: 'Nebbiolo',
-                color: '#800020'
-            },
-            '8000430004010': {
-                name: 'Barbaresco DOCG',
-                region: 'Piemont',
-                type: 'Wytrawne',
-                grapes: 'Nebbiolo',
-                color: '#722F37'
-            },
-            
-            // Barbera
-            '8000430003013': {
-                name: 'Barbera d\'Asti',
-                region: 'Piemont',
-                type: 'Wytrawne',
-                grapes: 'Barbera',
-                color: '#800020'
-            },
-            
-            // Moscato
-            '8000020003032': {
-                name: 'Moscato d\'Asti DOCG',
-                region: 'Piemont',
-                type: 'Słodkie',
-                grapes: 'Moscato Bianco',
-                color: '#FFD700'
-            },
-            
-            // Lambrusco
-            '8000600001011': {
-                name: 'Lambrusco Emilia IGT',
-                region: 'Emilia-Romagna',
-                type: 'Półsłodkie',
-                grapes: 'Lambrusco',
-                color: '#C41E3A'
-            },
-            
-            // Montepulciano
-            '8000140720010': {
-                name: 'Montepulciano d\'Abruzzo',
-                region: 'Abruzzo',
-                type: 'Wytrawne',
-                grapes: 'Montepulciano',
-                color: '#8B0000'
-            },
-            
-            // Pinot Grigio
-            '8000430008018': {
-                name: 'Pinot Grigio delle Venezie',
-                region: 'Veneto',
-                type: 'Wytrawne',
-                grapes: 'Pinot Grigio',
-                color: '#F5DEB3'
-            },
-            
-            // Soave
-            '8001915003000': {
-                name: 'Soave DOC',
-                region: 'Veneto',
-                type: 'Półwytrawne',
-                grapes: 'Garganega',
-                color: '#F5DEB3'
-            },
-            
-            // Valpolicella
-            '8000011001025': {
-                name: 'Valpolicella Classico',
-                region: 'Veneto',
-                type: 'Wytrawne',
-                grapes: 'Corvina, Rondinella',
-                color: '#8B0000'
-            },
-            
-            // Primitivo
-            '8000140690010': {
-                name: 'Primitivo di Manduria',
-                region: 'Puglia',
-                type: 'Wytrawne',
-                grapes: 'Primitivo',
-                color: '#800020'
-            },
-            
-            // ADD YOUR OWN WINES HERE:
-            // Copy this template and add your wine's barcode:
-            /*
-            'YOUR_BARCODE_HERE': {
-                name: 'Nazwa Wina',
-                region: 'Region',
-                type: 'Wytrawne', // lub Słodkie, Półsłodkie, Półwytrawne
-                grapes: 'Szczepy winogron',
-                color: '#HEX_COLOR'
-            },
-            */
+            // ADD YOUR OWN WINES HERE - these will be used as fallback
         };
+
+        // Fetch wine data from Open Food Facts API
+        async function fetchWineFromAPI(barcode) {
+            try {
+                console.log('Fetching from API:', barcode);
+                const response = await fetch(`https://world.openfoodfacts.org/api/v2/product/${barcode}.json`);
+                const data = await response.json();
+                
+                if (data.status === 1 && data.product) {
+                    const product = data.product;
+                    
+                    // Check if it's wine
+                    const categories = (product.categories || '').toLowerCase();
+                    const productName = (product.product_name || '').toLowerCase();
+                    
+                    if (categories.includes('wine') || categories.includes('vino') || 
+                        productName.includes('wine') || productName.includes('vino')) {
+                        
+                        // Try to determine wine type from product data
+                        const wineType = determineWineType(product);
+                        const region = extractRegion(product);
+                        
+                        return {
+                            name: product.product_name || 'Nieznane wino',
+                            region: region || 'Włochy',
+                            type: wineType,
+                            grapes: extractGrapes(product) || 'Nieznane',
+                            color: getColorForType(wineType),
+                            brand: product.brands || '',
+                            origin: product.countries || '',
+                            image: product.image_url || null,
+                            source: 'api'
+                        };
+                    }
+                }
+                
+                return null;
+            } catch (error) {
+                console.error('API fetch error:', error);
+                return null;
+            }
+        }
+
+        // Determine wine type from product data
+        function determineWineType(product) {
+            const name = (product.product_name || '').toLowerCase();
+            const categories = (product.categories || '').toLowerCase();
+            const combined = name + ' ' + categories;
+            
+            // Check for sweet wines
+            if (combined.includes('dolce') || combined.includes('sweet') || 
+                combined.includes('moscato') || combined.includes('recioto') ||
+                combined.includes('passito')) {
+                return 'Słodkie';
+            }
+            
+            // Check for semi-sweet
+            if (combined.includes('amabile') || combined.includes('semi-sweet') ||
+                combined.includes('lambrusco')) {
+                return 'Półsłodkie';
+            }
+            
+            // Check for semi-dry
+            if (combined.includes('abboccato') || combined.includes('semi-dry')) {
+                return 'Półwytrawne';
+            }
+            
+            // Default to dry (most common)
+            return 'Wytrawne';
+        }
+
+        // Extract region from product data
+        function extractRegion(product) {
+            const name = (product.product_name || '').toLowerCase();
+            const origins = (product.origins || product.countries || '').toLowerCase();
+            
+            // Italian wine regions
+            const regions = {
+                'toscana': 'Toskania',
+                'tuscany': 'Toskania',
+                'chianti': 'Toskania',
+                'piemonte': 'Piemont',
+                'piedmont': 'Piemont',
+                'barolo': 'Piemont',
+                'barbaresco': 'Piemont',
+                'veneto': 'Veneto',
+                'valpolicella': 'Veneto',
+                'prosecco': 'Veneto',
+                'soave': 'Veneto',
+                'sicilia': 'Sycylia',
+                'sicily': 'Sycylia',
+                'puglia': 'Puglia',
+                'apulia': 'Puglia',
+                'primitivo': 'Puglia',
+                'abruzzo': 'Abruzzo',
+                'montepulciano': 'Abruzzo',
+                'campania': 'Kampania',
+                'lombardia': 'Lombardia',
+                'lombardy': 'Lombardia',
+                'emilia': 'Emilia-Romagna',
+                'romagna': 'Emilia-Romagna',
+                'lambrusco': 'Emilia-Romagna'
+            };
+            
+            for (const [key, value] of Object.entries(regions)) {
+                if (name.includes(key) || origins.includes(key)) {
+                    return value;
+                }
+            }
+            
+            if (origins.includes('ital')) {
+                return 'Włochy';
+            }
+            
+            return null;
+        }
+
+        // Extract grape varieties
+        function extractGrapes(product) {
+            const name = (product.product_name || '').toLowerCase();
+            const ingredients = (product.ingredients_text || '').toLowerCase();
+            
+            const grapes = [
+                'sangiovese', 'nebbiolo', 'barbera', 'dolcetto',
+                'corvina', 'rondinella', 'glera', 'garganega',
+                'trebbiano', 'verdicchio', 'moscato', 'malvasia',
+                'montepulciano', 'primitivo', 'nero d\'avola',
+                'pinot grigio', 'chardonnay', 'sauvignon'
+            ];
+            
+            for (const grape of grapes) {
+                if (name.includes(grape) || ingredients.includes(grape)) {
+                    return grape.charAt(0).toUpperCase() + grape.slice(1);
+                }
+            }
+            
+            return null;
+        }
+
+        // Get color for wine type
+        function getColorForType(type) {
+            const colors = {
+                'Słodkie': '#FFD700',
+                'Półsłodkie': '#B8860B',
+                'Półwytrawne': '#8B7355',
+                'Wytrawne': '#8B0000'
+            };
+            return colors[type] || '#8B0000';
+        }
 
         let deferredPrompt;
         let scannerRunning = false;
@@ -1199,7 +1256,7 @@
             });
 
             let detectionCount = {};
-            Quagga.onDetected(function(result) {
+            Quagga.onDetected(async function(result) {
                 const code = result.codeResult.code;
                 console.log('Detected code:', code);
                 
@@ -1209,18 +1266,30 @@
                 }
                 detectionCount[code]++;
                 
-                // If detected 3 times in a row, accept it
+                // If detected 2 times in a row, accept it
                 if (detectionCount[code] >= 2) {
                     console.log('Code confirmed:', code);
+                    stopScanner();
                     
-                    if (wineDatabase[code]) {
-                        stopScanner();
-                        displayWine(code);
-                    } else {
-                        // Code not in database - offer to add it
-                        stopScanner();
-                        showAddWinePrompt(code);
+                    // Show loading
+                    showLoadingWine(code);
+                    
+                    // Try API first
+                    const apiWine = await fetchWineFromAPI(code);
+                    
+                    if (apiWine) {
+                        displayWine(code, apiWine);
+                        return;
                     }
+                    
+                    // Fallback to local database
+                    if (wineDatabase[code]) {
+                        displayWine(code, wineDatabase[code]);
+                        return;
+                    }
+                    
+                    // Not found
+                    showAddWinePrompt(code);
                 }
             });
         }
@@ -1243,35 +1312,122 @@
         }
 
         // Manual search
-        function searchManual() {
+        async function searchManual() {
             const input = document.getElementById('manual-input');
             const code = input.value.trim();
             
-            if (wineDatabase[code]) {
-                displayWine(code);
-                input.value = '';
-            } else {
-                alert('Kod kreskowy nie został znaleziony w bazie danych');
+            if (!code) {
+                alert('Wprowadź kod kreskowy');
+                return;
             }
+            
+            // Show loading
+            input.disabled = true;
+            input.value = 'Wyszukiwanie...';
+            
+            // Try API first
+            const apiWine = await fetchWineFromAPI(code);
+            
+            if (apiWine) {
+                console.log('Found in API:', apiWine);
+                displayWine(code, apiWine);
+                input.value = '';
+                input.disabled = false;
+                return;
+            }
+            
+            // Fallback to local database
+            if (wineDatabase[code]) {
+                console.log('Found in local database');
+                displayWine(code, wineDatabase[code]);
+                input.value = '';
+                input.disabled = false;
+                return;
+            }
+            
+            // Not found anywhere
+            input.value = '';
+            input.disabled = false;
+            showAddWinePrompt(code);
         }
 
         // Search by code (from sample)
-        function searchByCode(code) {
-            displayWine(code);
+        async function searchByCode(code) {
+            // Try API first
+            const apiWine = await fetchWineFromAPI(code);
+            
+            if (apiWine) {
+                displayWine(code, apiWine);
+                return;
+            }
+            
+            // Fallback to local database
+            if (wineDatabase[code]) {
+                displayWine(code, wineDatabase[code]);
+                return;
+            }
+            
+            showAddWinePrompt(code);
+        }
+
+        // Show loading wine screen
+        function showLoadingWine(barcode) {
+            const card = document.getElementById('wine-card');
+            card.style.borderColor = 'rgba(217, 119, 6, 0.6)';
+            
+            card.innerHTML = `
+                <div style="position: relative; z-index: 10; text-align: center; padding: 40px 20px;">
+                    <div style="font-size: 64px; margin-bottom: 24px; animation: spin 2s linear infinite;">🍷</div>
+                    <h2 style="color: #fcd34d; margin-bottom: 16px; font-family: 'Playfair Display', serif;">Wyszukiwanie...</h2>
+                    <div style="padding: 16px; background: rgba(0,0,0,0.3); border-radius: 8px; margin-bottom: 20px;">
+                        <div style="font-size: 12px; color: rgba(217, 119, 6, 0.7); margin-bottom: 4px;">KOD</div>
+                        <div style="font-family: monospace; font-size: 18px; color: #fbbf24;">${barcode}</div>
+                    </div>
+                    <p style="color: rgba(251, 191, 36, 0.7); font-size: 14px;">
+                        Sprawdzam bazę danych online...
+                    </p>
+                </div>
+            `;
+            
+            showView('result-view');
         }
 
         // Display wine
-        function displayWine(barcode) {
-            const wine = wineDatabase[barcode];
+        function displayWine(barcode, wineData) {
+            // If wineData is not provided, get from local database
+            if (!wineData) {
+                wineData = wineDatabase[barcode];
+            }
+            
+            const wine = wineData;
             const typeColor = getTypeColor(wine.type);
             
             const card = document.getElementById('wine-card');
             card.style.borderColor = typeColor + '60';
             
+            // Check if wine has an image from API
+            const imageHtml = wine.image ? `
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <img src="${wine.image}" alt="${wine.name}" style="max-width: 200px; max-height: 200px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.3);">
+                </div>
+            ` : '';
+            
+            // Source indicator
+            const sourceHtml = wine.source === 'api' ? `
+                <div style="text-align: center; margin-bottom: 16px;">
+                    <span style="display: inline-block; padding: 4px 12px; background: rgba(34, 197, 94, 0.2); border: 1px solid rgba(34, 197, 94, 0.4); border-radius: 12px; font-size: 11px; color: #4ade80;">
+                        ✓ Dane z bazy online
+                    </span>
+                </div>
+            ` : '';
+            
             card.innerHTML = `
                 <div class="wine-card-glow" style="background: radial-gradient(circle at top right, ${wine.color}, transparent 70%);"></div>
                 
                 <div style="position: relative; z-index: 10;">
+                    ${sourceHtml}
+                    ${imageHtml}
+                    
                     <div class="wine-bottle-icon">
                         <svg style="color: ${wine.color}; width: 80px; height: 80px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/>

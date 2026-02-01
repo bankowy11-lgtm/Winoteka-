@@ -5,11 +5,29 @@ Elegancka aplikacja webowa do skanowania kodów kreskowych na butelkach włoskic
 ## ✨ Funkcje
 
 - 📸 **Skanowanie kamerą** - używa QuaggaJS do skanowania kodów kreskowych
+- 🌐 **Baza danych online** - automatycznie wyszukuje wina w Open Food Facts API
 - ⌨️ **Ręczne wprowadzanie** - możliwość wpisania kodu ręcznie
 - 📱 **Instalacja na telefonie** - działa jako aplikacja mobilna (PWA)
 - 🎨 **Elegancki design** - inspirowany włoską kulturą winiarską
 - 🍇 **Informacje o winie** - typ (słodkie/półsłodkie/wytrawne/półwytrawne), region, szczepy
-- 🌐 **Działa offline** - po instalacji nie wymaga połączenia z internetem
+- 📷 **Zdjęcia win** - gdy dostępne w bazie danych
+- 🌐 **Działa offline** - po instalacji nie wymaga połączenia z internetem (dla lokalnej bazy)
+
+## 🌍 Baza danych online
+
+Aplikacja automatycznie łączy się z **Open Food Facts** - największą otwartą bazą produktów spożywczych na świecie:
+
+- ✅ **Setki tysięcy produktów** włączając wina z całego świata
+- ✅ **Aktualizowana przez społeczność** - ciągle rosząca baza
+- ✅ **Darmowa i otwarta** - bez kluczy API, bez limitów
+- ✅ **Automatyczna detekcja** - aplikacja sama rozpoznaje czy produkt to wino
+- ✅ **Inteligentna analiza** - określa typ wina, region, szczepy winogron
+
+### Jak to działa:
+1. Skanujesz kod kreskowy
+2. Aplikacja wysyła zapytanie do Open Food Facts
+3. Jeśli produkt jest w bazie - wyświetla informacje
+4. Jeśli nie ma - możesz dodać do lokalnej bazy
 
 ## 🚀 Instalacja na GitHub Pages
 
