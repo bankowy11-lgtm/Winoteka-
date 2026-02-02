@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#8B0000">
+    <title>WinoScan - Skaner win włoskich</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAADsSURBVHgBxVPbDcIwDKwHdAfKCBkhG6UjQEZgBIyQETJCOkI2ghVQqfqz5Fg2CYj+S3J8d5cDgDEAmsS0MdQLJ0E6xi5jLeIJoJEgvQ3g7lEnVdDaYYB8ZgKK9wGYF9+USlU2gHH3KOTAfq9h5yAOZATYE+zowtBeW4NdVbF22uEM4sZ92gjkAFkVE9n9MQJYYkW0h/X6m4Jl9ifEyJCqG4lbW7vMHgSoipBvUjS4E+VYq7yHAJm6gax1Ngm5gLjN18sQwDuBEdl2yLYlKQErHloiJz5k19sEOCPP9EFBfgFRuMf8M7ECvgAAAABJRU5ErkJggg==">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f8f5f0;
+            color: #333;
+            line-height: 1.6;
+            min-height: 100vh;
+            padding-bottom: 80px;
+        }
+
+        .container {
+            max-width: 100%;
+            width: 100%;
+            padding: 15px;
+        }
+
+        header {
+            background: linear-gradient(135deg, #8B0000, #A52A2A);
+            color: white;
+            padding: 20px 15px;
+            text-align: center;
+            border-radius: 0 0 20px 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            margin-bottom: 25px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 10px;
+        }
+
+        .logo i {
+            font-size: 2.5rem;
+        }
+
+        .logo h1 {
+            font-size: 1.8rem;
+        }
+
+        .subtitle {
+            font-size: 0.95rem;
+            opacity: 0.9;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .scanner-section {
+            background-color: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+            margin-bottom: 25px;
+            text-align: center;
+        }
+
+        .section-title {
+            font-size: 1.4rem;
+            color: #8B0000;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .section-title i {
+            font-size: 1.6rem;
+        }
+
+        .scanner-container {
+            width: 100%;
+            height: 300px;
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 20px;
+            background-color: #f0f0f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            border: 2px dashed #ccc;
+        }
+
+        #scanner-view {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .scanner-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            background-color: rgba(0, 0, 0, 0.5);
+            color: white;
+            z-index: 10;
+        }
+
+        .scanner-line {
+            width: 80%;
+            height: 3px;
+            background-color: #8B0000;
+            position: absolute;
+            top: 50%;
+            animation: scan 2s infinite linear;
+        }
+
+        @keyframes scan {
+            0% { top: 10%; }
+            50% { top: 90%; }
+            100% { top: 10%; }
+        }
+
+        .btn {
+            background: linear-gradient(to right, #8B0000, #A52A2A);
+            color: white;
+            border: none;
+            padding: 14px 25px;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 8px rgba(139, 0, 0, 0.2);
+            width: 100%;
+            max-width: 300px;
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 12px rgba(139, 0, 0, 0.25);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(to right, #2E8B57, #3CB371);
+            box-shadow: 0 4px 8px rgba(46, 139, 87, 0.2);
+        }
+
+        .btn-secondary:hover {
+            box-shadow: 0 6px 12px rgba(46, 139, 87, 0.25);
+        }
+
+        .buttons-container {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            align-items: center;
+            margin-top: 20px;
+        }
+
+        .result-section {
+            background-color: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+            margin-bottom: 25px;
+            display: none;
+        }
+
+        .wine-info {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .wine-image {
+            width: 100%;
+            height: 200px;
+            border-radius: 12px;
+            overflow: hidden;
+            background-color: #f0f0f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #777;
+        }
+
+        .wine-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .wine-details {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .wine-name {
+            font-size: 1.6rem;
+            color: #8B0000;
+            font-weight: 700;
+        }
+
+        .wine-type {
+            display: inline-block;
+            padding: 6px 15px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            text-align: center;
+            margin-top: 5px;
+        }
+
+        .sweet { background-color: #FFE4E1; color: #B22222; }
+        .semi-sweet { background-color: #FFF0F5; color: #C71585; }
+        .dry { background-color: #F0FFF0; color: #006400; }
+        .semi-dry { background-color: #F5F5DC; color: #8B4513; }
+
+        .wine-detail-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .wine-detail-label {
+            font-weight: 600;
+            color: #555;
+        }
+
+        .wine-detail-value {
+            color: #333;
+            text-align: right;
+        }
+
+        .database-section {
+            background-color: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+            margin-bottom: 25px;
+        }
+
+        .database-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .database-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px;
+            border-radius: 10px;
+            background-color: #f9f9f9;
+            transition: all 0.3s ease;
+            border-left: 4px solid #8B0000;
+        }
+
+        .database-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+        }
+
+        .wine-icon {
+            width: 50px;
+            height: 50px;
+            background-color: #8B0000;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5rem;
+        }
+
+        .database-info h3 {
+            color: #8B0000;
+            margin-bottom: 5px;
+        }
+
+        .database-info p {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .instructions {
+            background-color: #fff8e1;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+            margin-bottom: 25px;
+            border-left: 5px solid #ffb300;
+        }
+
+        .instructions h3 {
+            color: #8B0000;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .instructions ol {
+            padding-left: 20px;
+            margin-top: 10px;
+        }
+
+        .instructions li {
+            margin-bottom: 8px;
+        }
+
+        footer {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .install-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: linear-gradient(to right, #2E8B57, #3CB371);
+            color: white;
+            border: none;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            font-size: 1.5rem;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            z-index: 100;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+
+        @media (min-width: 768px) {
+            .container {
+                max-width: 750px;
+                margin: 0 auto;
+            }
+            
+            .buttons-container {
+                flex-direction: row;
+                justify-content: center;
+            }
+            
+            .wine-info {
+                flex-direction: row;
+            }
+            
+            .wine-image {
+                width: 40%;
+                height: 250px;
+            }
+            
+            .wine-details {
+                width: 60%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">
+                <i class="fas fa-wine-bottle"></i>
+                <h1>WinoScan Italia</h1>
+            </div>
+            <p class="subtitle">Skanuj kody kreskowe włoskich win i odkrywaj ich charakterystykę</p>
+        </header>
+
+        <section class="scanner-section">
+            <h2 class="section-title"><i class="fas fa-barcode"></i> Skaner kodów kreskowych</h2>
+            <div class="scanner-container">
+                <div class="scanner-overlay" id="scanner-overlay">
+                    <i class="fas fa-camera fa-3x"></i>
+                    <p style="margin-top: 15px;">Kamera gotowa do skanowania</p>
+                    <div class="scanner-line"></div>
+                </div>
+                <video id="scanner-view" playsinline></video>
+            </div>
+            <div class="buttons-container">
+                <button class="btn" id="start-scanner">
+                    <i class="fas fa-play"></i> Uruchom skaner
+                </button>
+                <button class="btn btn-secondary" id="stop-scanner">
+                    <i class="fas fa-stop"></i> Zatrzymaj skaner
+                </button>
+            </div>
+        </section>
+
+        <section class="result-section" id="result-section">
+            <h2 class="section-title"><i class="fas fa-wine-glass-alt"></i> Wynik skanowania</h2>
+            <div class="wine-info">
+                <div class="wine-image">
+                    <img id="wine-image" src="" alt="Zdjęcie wina">
+                    <span id="image-placeholder"><i class="fas fa-wine-bottle fa-3x"></i></span>
+                </div>
+                <div class="wine-details">
+                    <h3 class="wine-name" id="wine-name">Nazwa wina</h3>
+                    <div>
+                        <span class="wine-type" id="wine-type">Typ wina</span>
+                    </div>
+                    <div class="wine-detail-item">
+                        <span class="wine-detail-label">Region:</span>
+                        <span class="wine-detail-value" id="wine-region">-</span>
+                    </div>
+                    <div class="wine-detail-item">
+                        <span class="wine-detail-label">Rodzaj winogron:</span>
+                        <span class="wine-detail-value" id="wine-grapes">-</span>
+                    </div>
+                    <div class="wine-detail-item">
+                        <span class="wine-detail-label">Rocznik:</span>
+                        <span class="wine-detail-value" id="wine-year">-</span>
+                    </div>
+                    <div class="wine-detail-item">
+                        <span class="wine-detail-label">Zawartość alkoholu:</span>
+                        <span class="wine-detail-value" id="wine-alcohol">-</span>
+                    </div>
+                    <div class="wine-detail-item">
+                        <span class="wine-detail-label">Opis smaku:</span>
+                        <span class="wine-detail-value" id="wine-description">-</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="instructions">
+            <h3><i class="fas fa-info-circle"></i> Jak używać aplikacji</h3>
+            <ol>
+                <li>Kliknij "Uruchom skaner", aby włączyć kamerę</li>
+                <li>Skieruj kod kreskowy na butelce wina w stronę kamery</li>
+                <li>Aplikacja automatycznie zeskanuje kod i pokaże informacje o winie</li>
+                <li>Po zakończeniu kliknij "Zatrzymaj skaner"</li>
+                <li>Aby zainstalować aplikację na swoim telefonie, kliknij przycisk instalacji w prawym dolnym rogu</li>
+            </ol>
+        </section>
+
+        <section class="database-section">
+            <h2 class="section-title"><i class="fas fa-database"></i> Baza włoskich win</h2>
+            <p style="text-align: center; margin-bottom: 15px; color: #666;">Przykładowe wina dostępne w naszej bazie</p>
+            <div class="database-list" id="wine-database">
+                <!-- Baza win będzie wypełniana przez JavaScript -->
+            </div>
+        </section>
+
+        <footer>
+            <p>WinoScan Italia &copy; 2023 | Aplikacja do skanowania włoskich win</p>
+            <p style="font-size: 0.8rem; margin-top: 5px;">Baza danych win włoskich jest aktualizowana online</p>
+        </footer>
+    </div>
+
+    <button class="install-btn" id="install-button">
+        <i class="fas fa-download"></i>
+    </button>
+
+    <script>
+        // Deklaracja zmiennych
+        let scannerActive = false;
+        let scanner = null;
+        let deferredPrompt;
+
+        // Baza danych włoskich win (w rzeczywistości można podłączyć do zewnętrznego API)
+        const wineDatabase = [
+            {
+                id: 1,
+                name: "Barolo DOCG",
+                type: "wytrawne",
+                region: "Piemont",
+                grapes: "Nebbiolo",
+                year: 2018,
+                alcohol: "14%",
+                description: "Czerwone wino o intensywnym aromacie wiśni, lukrecji i róży",
+                barcode: "8001234567890",
+                image: "https://images.unsplash.com/photo-1553361371-9b22f78e8b1d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80"
+            },
+            {
+                id: 2,
+                name: "Chianti Classico",
+                type: "wytrawne",
+                region: "Toskania",
+                grapes: "Sangiovese",
+                year: 2020,
+                alcohol: "13.5%",
+                description: "Czerwone wino o smaku czerwonych owoców z nutą wanilii",
+                barcode: "8001234567891",
+                image: "https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80"
+            },
+            {
+                id: 3,
+                name: "Amarone della Valpolicella",
+                type: "półwytrawne",
+                region: "Wenecja Euganejska",
+                grapes: "Corvina, Rondinella, Molinara",
+                year: 2017,
+                alcohol: "15.5%",
+                description: "Czerwone wino o intensywnym smaku suszonych śliwek i czekolady",
+                barcode: "8001234567892",
+                image: "https://images.unsplash.com/photo-1566630721212-6bdb1c0dbe32?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80"
+            },
+            {
+                id: 4,
+                name: "Moscato d'Asti",
+                type: "słodkie",
+                region: "Piemont",
+                grapes: "Moscato Bianco",
+                year: 2021,
+                alcohol: "5.5%",
+                description: "Musujące białe wino o aromacie brzoskwiń i kwiatów pomarańczy",
+                barcode: "8001234567893",
+                image: "https://images.unsplash.com/photo-1553361371-9b22f78e8b1d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80"
+            },
+            {
+                id: 5,
+                name: "Prosecco DOC",
+                type: "półsłodkie",
+                region: "Wenecja Euganejska",
+                grapes: "Glera",
+                year: 2022,
+                alcohol: "11%",
+                description: "Musujące białe wino o świeżym smaku zielonego jabłka i gruszki",
+                barcode: "8001234567894",
+                image: "https://images.unsplash.com/photo-1553361371-9b22f78e8b1d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80"
+            },
+            {
+                id: 6,
+                name: "Brunello di Montalcino",
+                type: "wytrawne",
+                region: "Toskania",
+                grapes: "Sangiovese Grosso",
+                year: 2016,
+                alcohol: "14.5%",
+                description: "Czerwone wino o złożonym smaku czerwonych owoców, wanilii i dębu",
+                barcode: "8001234567895",
+                image: "https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=500&q=80"
+            }
+        ];
+
+        // Elementy DOM
+        const startScannerBtn = document.getElementById('start-scanner');
+        const stopScannerBtn = document.getElementById('stop-scanner');
+        const scannerView = document.getElementById('scanner-view');
+        const scannerOverlay = document.getElementById('scanner-overlay');
+        const resultSection = document.getElementById('result-section');
+        const wineDatabaseContainer = document.getElementById('wine-database');
+        const installButton = document.getElementById('install-button');
+
+        // Funkcja inicjalizacji bazy win na stronie
+        function initWineDatabase() {
+            wineDatabaseContainer.innerHTML = '';
+            
+            wineDatabase.forEach(wine => {
+                const wineElement = document.createElement('div');
+                wineElement.className = 'database-item';
+                
+                // Określenie klasy typu wina dla kolorowania
+                let typeClass = '';
+                switch(wine.type) {
+                    case 'słodkie': typeClass = 'sweet'; break;
+                    case 'półsłodkie': typeClass = 'semi-sweet'; break;
+                    case 'wytrawne': typeClass = 'dry'; break;
+                    ca
